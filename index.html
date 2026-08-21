@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#087b94">
+
+    <title>Tide Search</title>
+
+    <style>
+
+        /* =========================
+           BASIC RESET
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /* =========================
+           PAGE
+        ========================= */
+
+       body {
+    min-height: 100vh;
+    overflow: hidden;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Arial, sans-serif;
+
+   background-color: rgb(246, 165, 65);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    position: relative;
+    isolation: isolate;
+}
+
+        /* =========================
+           DARK / LIGHT OVERLAY
+        ========================= */
+
+        body::before {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            z-index: -1;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(0, 65, 90, 0.15),
+                    rgba(0, 0, 0, 0.05) 45%,
+                    rgba(0, 0, 0, 0.20)
+                );
+        }
+
+
+        /* =========================
+           SCENE
+        ========================= */
+
+        .scene {
+
+            width: min(900px, calc(100vw - 40px));
+
+            transform: translateY(-3vh);
+
+            position: relative;
+        }
+
+
+        /* =========================
+           TITLE
+        ========================= */
+
+        .eyebrow {
+
+            margin: 0 0 16px 12px;
+
+            color: rgba(255, 255, 255, 0.92);
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 4px;
+
+            text-shadow:
+                0 2px 8px rgba(0, 50, 70, 0.8);
+        }
+
+
+        /* =========================
+           SEARCH OUTER GLASS
+        ========================= */
+
+        .search-shell {
+
+            position: relative;
+
+            width: 100%;
+
+            padding: 1.5px;
+
+            border-radius: 100px;
+
+            isolation: isolate;
+        }
+
+
+        /* Glass border */
+
+        .search-shell::before {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            border-radius: inherit;
+
+            z-index: -1;
+
+            background:
+                linear-gradient(
+                    120deg,
+                    rgba(255,255,255,0.95),
+                    rgba(255,255,255,0.35) 25%,
+                    rgba(255,255,255,0.10) 55%,
+                    rgba(180, 226, 233, 0.75)
+                );
+
+            box-shadow:
+
+                0 25px 70px
+                rgba(0, 45, 65, 0.40),
+
+                0 5px 20px
+                rgba(0, 40, 60, 0.30),
+
+                inset 0 1px 2px
+                rgba(255,255,255,0.9);
+        }
+
+
+        /* =========================
+           SEARCH BOX
+        ========================= */
+
+        .search-box {
+
+            position: relative;
+
+            height: 82px;
+
+            width: 100%;
+
+            display: flex;
+
+            align-items: center;
+
+            overflow: hidden;
+
+            border-radius: 100px;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(255,255,255,0.38),
+                    rgba(200,245,255,0.20),
+                    rgba(255,255,255,0.25)
+                );
+
+            backdrop-filter:
+                blur(18px)
+                saturate(160%);
+
+            -webkit-backdrop-filter:
+                blur(18px)
+                saturate(160%);
+
+            box-shadow:
+
+                inset 0 1px 0
+                rgba(255,255,255,0.65),
+
+                inset 0 -1px 0
+                rgba(255,255,255,0.18);
+        }
+
+
+        /* Glass shine */
+
+        .search-box::before {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                linear-gradient(
+                    105deg,
+                    rgba(255,255,255,0.35),
+                    transparent 28%,
+                    transparent 68%,
+                    rgba(180,245,255,0.20)
+                );
+
+            z-index: 0;
+        }
+
+
+        /* =========================
+           SEARCH ICON
+        ========================= */
+
+        .search-icon {
+
+            flex: 0 0 auto;
+
+            width: 30px;
+
+            height: 30px;
+
+            margin-left: 30px;
+
+            margin-right: 20px;
+
+            color: white;
+
+            filter:
+                drop-shadow(
+                    0 2px 5px
+                    rgba(0,40,60,0.45)
+                );
+
+            z-index: 5;
+        }
+
+
+        /* =========================
+           INPUT
+        ========================= */
+
+        input {
+
+            position: relative;
+
+            z-index: 5;
+
+            flex: 1;
+
+            min-width: 0;
+
+            height: 100%;
+
+            border: none;
+
+            outline: none;
+
+            background: transparent;
+
+            color: white;
+
+            font-size: 20px;
+
+            font-weight: 500;
+
+            letter-spacing: 0.3px;
+
+            padding-right: 15px;
+
+            text-shadow:
+                0 2px 8px
+                rgba(0,45,70,0.5);
+        }
+
+
+        input::placeholder {
+
+            color:
+                rgba(255,255,255,0.88);
+        }
+
+
+        /* Remove browser search X */
+
+        input::-webkit-search-cancel-button {
+
+            filter: brightness(0) invert(1);
+        }
+
+
+        /* =========================
+           SEARCH BUTTON
+        ========================= */
+
+        button {
+
+            position: relative;
+
+            z-index: 5;
+
+            margin-right: 10px;
+
+            padding: 14px 22px;
+
+            border-radius: 100px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.45);
+
+            color: white;
+
+            background:
+                rgba(0,105,140,0.38);
+
+            backdrop-filter: blur(8px);
+
+            -webkit-backdrop-filter: blur(8px);
+
+            box-shadow:
+
+                inset 0 1px 0
+                rgba(255,255,255,0.35),
+
+                0 4px 12px
+                rgba(0,40,60,0.25);
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            letter-spacing: 1.5px;
+
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.25s ease,
+                background 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+
+        button:hover {
+
+            transform:
+                translateY(-2px)
+                scale(1.03);
+
+            background:
+                rgba(0,120,155,0.65);
+
+            box-shadow:
+
+                0 6px 18px
+                rgba(0,50,70,0.35),
+
+                inset 0 1px 0
+                rgba(255,255,255,0.4);
+        }
+
+
+        button:active {
+
+            transform:
+                scale(0.97);
+        }
+
+
+        /* =========================
+           RIPPLE CONTAINER
+        ========================= */
+
+        .ripples {
+
+            position: absolute;
+
+            inset: 0;
+
+            overflow: hidden;
+
+            border-radius: inherit;
+
+            z-index: 2;
+
+            pointer-events: none;
+        }
+
+
+        /* =========================
+           WATER RIPPLE
+        ========================= */
+
+        .ripple {
+
+            position: absolute;
+
+            width: 18px;
+
+            height: 18px;
+
+            border-radius: 50%;
+
+            transform:
+                translate(-50%, -50%)
+                scale(0.1);
+
+            border:
+                1.5px solid
+                rgba(240,253,255,0.95);
+
+            box-shadow:
+
+                0 0 0 1px
+                rgba(40,200,235,0.30),
+
+                0 0 15px 3px
+                rgba(150,244,255,0.50),
+
+                inset 0 0 10px
+                rgba(255,255,255,0.35);
+
+            opacity: 0;
+
+            animation:
+                ripple 1.7s
+                cubic-bezier(.11,.55,.24,1)
+                forwards;
+
+            mix-blend-mode: screen;
+        }
+
+
+        .ripple:nth-child(2) {
+
+            animation-delay: 0.12s;
+
+            border-color:
+                rgba(195,245,255,0.75);
+        }
+
+
+        .ripple:nth-child(3) {
+
+            animation-delay: 0.24s;
+
+            border-color:
+                rgba(255,255,255,0.55);
+        }
+
+
+        /* =========================
+           WATER DROP
+        ========================= */
+
+        .drop {
+
+            position: absolute;
+
+            width: 8px;
+
+            height: 8px;
+
+            border-radius: 50%;
+
+            transform:
+                translate(-50%, -50%);
+
+            background:
+                rgba(255,255,255,0.95);
+
+            box-shadow:
+
+                0 0 15px 6px
+                rgba(120,235,255,0.70);
+
+            animation:
+                drop 0.5s
+                ease-out
+                forwards;
+        }
+
+
+        /* =========================
+           RIPPLE ANIMATION
+        ========================= */
+
+        @keyframes ripple {
+
+            0% {
+
+                opacity: 0.95;
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(0.12);
+            }
+
+            50% {
+
+                opacity: 0.42;
+            }
+
+            100% {
+
+                opacity: 0;
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(34);
+            }
+        }
+
+
+        /* =========================
+           DROP ANIMATION
+        ========================= */
+
+        @keyframes drop {
+
+            0% {
+
+                opacity: 1;
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(0.4);
+            }
+
+            100% {
+
+                opacity: 0;
+
+                transform:
+                    translate(-50%, -50%)
+                    scale(2.5);
+            }
+        }
+
+
+        /* =========================
+           HINT
+        ========================= */
+
+        .hint {
+
+            margin:
+                16px 0 0 12px;
+
+            color:
+                rgba(255,255,255,0.85);
+
+            font-size: 13px;
+
+            text-shadow:
+                0 2px 8px
+                rgba(0,45,70,0.7);
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 650px) {
+
+            .scene {
+
+                width:
+                    calc(100vw - 28px);
+            }
+
+
+            .search-box {
+
+                height: 70px;
+            }
+
+
+            .search-icon {
+
+                width: 25px;
+
+                height: 25px;
+
+                margin-left: 20px;
+
+                margin-right: 13px;
+            }
+
+
+            input {
+
+                font-size: 16px;
+            }
+
+
+            button {
+
+                padding:
+                    11px 14px;
+
+                font-size: 11px;
+
+                letter-spacing: 1px;
+            }
+
+
+            .eyebrow {
+
+                font-size: 10px;
+
+                letter-spacing: 3px;
+            }
+        }
+
+
+        /* =========================
+           SMALL MOBILE
+        ========================= */
+
+        @media (max-width: 450px) {
+
+            button {
+
+                display: none;
+            }
+
+
+            input {
+
+                padding-right: 15px;
+            }
+
+
+            .hint {
+
+                font-size: 11px;
+            }
+        }
+
+
+        /* =========================
+           REDUCE MOTION
+        ========================= */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .ripple,
+            .drop {
+
+                animation-duration:
+                    0.01ms;
+            }
+
+            button {
+
+                transition: none;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================= -->
+
+    <main class="scene">
+
+        <p class="eyebrow">
+            FOLLOW THE TIDE
+        </p>
+
+
+        <!-- SEARCH -->
+
+        <form
+            class="search-shell"
+            id="searchForm"
+            role="search"
+        >
+
+            <div
+                class="search-box"
+                id="searchBox"
+            >
+
+
+                <!-- SEARCH ICON -->
+
+                <svg
+                    class="search-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+
+                    <circle
+                        cx="10.8"
+                        cy="10.8"
+                        r="6.7"
+                    />
+
+                    <path
+                        d="M16 16L20.5 20.5"
+                    />
+
+                </svg>
+
+
+                <!-- SEARCH INPUT -->
+
+                <input
+                    id="search"
+                    type="search"
+                    placeholder="Where would you like to explore?"
+                    aria-label="Search"
+                    autocomplete="off"
+                >
+
+
+                <!-- SEARCH BUTTON -->
+
+                <button
+                    type="submit"
+                >
+                    Search
+                </button>
+
+
+                <!-- RIPPLE LAYER -->
+
+                <div
+                    class="ripples"
+                    id="ripples"
+                    aria-hidden="true"
+                ></div>
+
+            </div>
+
+        </form>
+
+
+        <p class="hint">
+            Touch the glass to make waves.
+        </p>
+
+    </main>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script>
+
+        const box =
+            document.getElementById("searchBox");
+
+        const ripples =
+            document.getElementById("ripples");
+
+        const form =
+            document.getElementById("searchForm");
+
+        const search =
+            document.getElementById("search");
+
+
+        /* =========================
+           RIPPLE EFFECT
+        ========================= */
+
+        box.addEventListener(
+            "pointerdown",
+            function(event) {
+
+                const rect =
+                    box.getBoundingClientRect();
+
+
+                const x =
+                    event.clientX - rect.left;
+
+
+                const y =
+                    event.clientY - rect.top;
+
+
+                const rippleTypes = [
+
+                    "ripple",
+                    "ripple",
+                    "ripple",
+                    "drop"
+
+                ];
+
+
+                rippleTypes.forEach(
+                    function(className) {
+
+                        const wave =
+                            document.createElement("span");
+
+
+                        wave.className =
+                            className;
+
+
+                        wave.style.left =
+                            x + "px";
+
+
+                        wave.style.top =
+                            y + "px";
+
+
+                        ripples.appendChild(wave);
+
+
+                        wave.addEventListener(
+                            "animationend",
+                            function() {
+
+                                wave.remove();
+
+                            },
+                            {
+                                once: true
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================
+           SEARCH
+        ========================= */
+
+        form.addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+
+                const query =
+                    search.value.trim();
+
+
+                if (query === "") {
+
+                    search.focus();
+
+                    return;
+                }
+
+
+                /*
+                    Change this URL if you want
+                    another search engine.
+                */
+
+                const url =
+                    "https://www.google.com/search?q="
+                    +
+                    encodeURIComponent(query);
+
+
+                window.open(
+                    url,
+                    "_blank"
+                );
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
