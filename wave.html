@@ -42,7 +42,7 @@
 
     font-family: Arial, sans-serif;
 
-   background-color: rgb(238, 140, 21);
+   background-color: rgb(242, 223, 179);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -50,7 +50,92 @@
     position: relative;
     isolation: isolate;
 }
+/* =========================
+   CUSTOM CURSOR
+========================= */
 
+body {
+    cursor: none;
+}
+
+.cursor-ring,
+.cursor-dot {
+    position: fixed;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
+
+.cursor-ring {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #07b383;
+    border-radius: 50%;
+    background: rgba(7, 179, 131, 0.04);
+
+    transition:
+        width 0.2s ease,
+        height 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.cursor-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow:
+        0 0 8px rgba(255, 255, 255, 0.9),
+        0 0 14px rgba(0, 217, 255, 0.55);
+
+    transition:
+        transform 0.18s ease,
+        opacity 0.2s ease;
+}
+
+.cursor-dot.hover {
+    transform: translate(-50%, -50%) scale(0.55);
+}
+
+.cursor-ring.click {
+    width: 45px;
+    height: 45px;
+    border-color: #ffffff;
+    background: rgba(0, 217, 255, 0.08);
+    box-shadow:
+        0 0 15px #00d9ff,
+        0 0 35px rgba(0, 217, 255, 0.5);
+}
+
+.cursor-ring.hover {
+    width: 55px;
+    height: 55px;
+    border-color: #ffffff;
+    background: rgba(0, 217, 255, 0.08);
+    box-shadow:
+        0 0 20px rgba(0, 217, 255, 0.7),
+        0 0 45px rgba(0, 217, 255, 0.3);
+}
+
+/* Use the normal cursor on touch devices */
+@media (hover: none), (pointer: coarse) {
+    .cursor-ring,
+    .cursor-dot {
+        display: none;
+    }
+
+    body,
+    button,
+    input {
+        cursor: auto;
+    }
+}
+        
         /* =========================
            DARK / LIGHT OVERLAY
         ========================= */
@@ -700,6 +785,8 @@
     <!-- =========================
          MAIN CONTENT
     ========================= -->
+    <div class="cursor-ring"></div>
+ <div class="cursor-dot"></div>
 
     <main class="scene">
 
@@ -806,74 +893,187 @@
         const search =
             document.getElementById("search");
 
+ const cursor = document.querySelector(".cursor-ring");
+        const dot = document.querySelector(".cursor-dot");
+
+
+        /* Current mouse position */
+
+        let mouseX = 0;
+        let mouseY = 0;
+
+
+        /* Cursor position */
+
+        let cursorX = 0;
+        let cursorY = 0;
+
+
+        /* Mouse movement */
+
+        document.addEventListener("mousemove", function(event) {
+
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+
+        });
+
+
+        /* Smooth cursor animation */
+
+        function animateCursor() {
+
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+
+
+            cursor.style.left = cursorX + "px";
+            cursor.style.top = cursorY + "px";
+
+
+            /* Dot follows slightly faster */
+
+            dot.style.left = mouseX + "px";
+            dot.style.top = mouseY + "px";
+
+
+            requestAnimationFrame(animateCursor);
+        }
+
+
+        animateCursor();
+
 
         /* =========================
-           RIPPLE EFFECT
+           CLICK ANIMATION
         ========================= */
+
+        document.addEventListener("mousedown", function() {
+
+            cursor.classList.add("click");
+
+        });
+
+
+        document.addEventListener("mouseup", function() {
+
+            cursor.classList.remove("click");
+
+        });
+
+
+        /* =========================
+           HOVER EFFECT
+        ========================= */
+
+        const hoverElements =
+            document.querySelectorAll(
+                "a, button, input, .search-box, .card"
+            );
+
+
+        hoverElements.forEach(function(element) {
+
+            element.addEventListener("mouseenter", function() {
+
+                cursor.classList.add("hover");
+                dot.classList.add("hover");
+
+            });
+
+
+            element.addEventListener("mouseleave", function() {
+
+                cursor.classList.remove("hover");
+                dot.classList.remove("hover");
+
+            });
+
+        });
+
+
+        /* =========================
+           HIDE CURSOR WHEN LEAVING
+           THE WEBSITE WINDOW
+        ========================= */
+
+        document.addEventListener("mouseleave", function() {
+
+            cursor.style.opacity = "0";
+            dot.style.opacity = "0";
+
+        });
+
+
+        document.addEventListener("mouseenter", function() {
+
+            cursor.style.opacity = "1";
+            dot.style.opacity = "1";
+
+        });
+
+
+        /* =========================
+           WATER RIPPLE EFFECT
+        ========================= */
+
+        function makeRipple(clientX, clientY) {
+
+            const rect = box.getBoundingClientRect();
+
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            /* Create 3 expanding rings */
+            for (let i = 0; i < 3; i++) {
+
+                const ripple =
+                    document.createElement("span");
+
+                ripple.className = "ripple";
+
+                ripple.style.left = x + "px";
+                ripple.style.top = y + "px";
+
+                ripples.appendChild(ripple);
+
+                ripple.addEventListener(
+                    "animationend",
+                    function() {
+                        ripple.remove();
+                    },
+                    { once: true }
+                );
+            }
+
+            /* Small bright drop in the center */
+            const drop =
+                document.createElement("span");
+
+            drop.className = "drop";
+            drop.style.left = x + "px";
+            drop.style.top = y + "px";
+
+            ripples.appendChild(drop);
+
+            drop.addEventListener(
+                "animationend",
+                function() {
+                    drop.remove();
+                },
+                { once: true }
+            );
+        }
+
 
         box.addEventListener(
             "pointerdown",
             function(event) {
 
-                const rect =
-                    box.getBoundingClientRect();
-
-
-                const x =
-                    event.clientX - rect.left;
-
-
-                const y =
-                    event.clientY - rect.top;
-
-
-                const rippleTypes = [
-
-                    "ripple",
-                    "ripple",
-                    "ripple",
-                    "drop"
-
-                ];
-
-
-                rippleTypes.forEach(
-                    function(className) {
-
-                        const wave =
-                            document.createElement("span");
-
-
-                        wave.className =
-                            className;
-
-
-                        wave.style.left =
-                            x + "px";
-
-
-                        wave.style.top =
-                            y + "px";
-
-
-                        ripples.appendChild(wave);
-
-
-                        wave.addEventListener(
-                            "animationend",
-                            function() {
-
-                                wave.remove();
-
-                            },
-                            {
-                                once: true
-                            }
-                        );
-
-                    }
+                makeRipple(
+                    event.clientX,
+                    event.clientY
                 );
-
             }
         );
 
@@ -899,6 +1099,7 @@
 
                     return;
                 }
+                
 
 
                 /*
